@@ -1,0 +1,38 @@
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-error.log
+package-lock.json
+
+# Python virtual environment
+venv/
+.env
+*.pyc
+__pycache__/
+
+# FastAPI / Python cache
+instance/
+*.sqlite3
+db.sqlite3
+
+# Logs and local environment
+logs/
+*.log
+debug.log
+*.out
+
+# VSCode settings
+.vscode/
+.history
+
+# Miscellaneous
+*.swp
+*.swo
+.idea/
+*.iml
+Thumbs.db
