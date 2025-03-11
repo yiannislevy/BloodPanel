@@ -36,3 +36,5 @@ debug.log
 .idea/
 *.iml
 Thumbs.db
+
+uploads
