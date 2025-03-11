@@ -38,3 +38,5 @@ debug.log
 Thumbs.db
 
 uploads
+
+.env
