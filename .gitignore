@@ -42,3 +42,5 @@ uploads
 .env
 
 backend/utils/archive
+
+backend/test_data
