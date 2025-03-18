@@ -3,8 +3,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import shutil
 import os
+import json
 import datetime
 import time
+from typing import Optional, List
+from openai import OpenAI
+from dotenv import load_dotenv
+from utils.text_processors import extract_text_from_pdf, process_pdf_with_openai
+
+# ======= Configuration =======
+load_dotenv()
+
+UPLOAD_DIR = "../uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise RuntimeError("OpenAI api key environment variable not set!")
+# ============================
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -21,26 +37,9 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-
 # Directory where files will be saved
 UPLOAD_DIR = "../uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-
-# Simulate OCR Processing (This should be replaced with actual OCR API later) : https://docs.mistral.ai/capabilities/document/
-def process_ocr(file_path: str):
-    # Simulate a delay for OCR processing
-    time.sleep(2)
-    
-    # Simulating OCR output: the actual OCR service would return structured data
-    ocr_data = {
-        "text": "Sample blood panel data extracted from PDF",
-        "data": {
-            "test1": "Value 1",
-            "test2": "Value 2",
-            "test3": "Value 3"
-        }
-    }
-    return ocr_data
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
@@ -55,6 +54,24 @@ async def upload_file(file: UploadFile = File(...)):
         shutil.copyfileobj(file.file, buffer)
 
     # now we trigger ocr processing:
-    ocr_result = process_ocr(file_path)
+    raw_text = extract_text_from_pdf(file_path)
+    if not raw_text:
+        return JSONResponse(content={"error": "Failed to extract text from PDF"}, status_code=500)
+    else:
+        with open(f'responses/raw/raw_text_{file_name}.json', "w", encoding="utf-8") as f:
+            f.write(raw_text)
 
-    return {"filename": file.filename, "path": file_path, "ocr_result": ocr_result}
+    structured_data = process_pdf_with_openai(raw_text, api_key)
+    if not structured_data:
+        return JSONResponse(content={"error": "Failed to process extracted text"}, status_code=500)
+    else:
+        with open(f'responses/openai/openai_api_response_{file_name}.json', "w", encoding="utf-8") as f:
+            f.write(structured_data.model_dump_json(indent=2))
+
+    # save to postgres
+
+    return {
+        "filename": file.filename, 
+        "path": file_path,
+        "structured_data": structured_data.dict()
+    }
