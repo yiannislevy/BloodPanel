@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from database import Base
+from database import Base # fix in case of alembic revision to backend.database
 
 class User(Base):
     __tablename__ = "users"
@@ -29,8 +29,8 @@ class BloodTest(Base):
     test_id = Column(Integer, primary_key=True, index=True)
     session_id = Column(Integer, ForeignKey("test_sessions.session_id"), nullable=False)
     test_name = Column(String, nullable=False)
-    value = Column(Float, nullable=False)
-    unit = Column(String, nullable=False)
+    value = Column(Float, nullable=True)
+    unit = Column(String, nullable=True)
     normal_range = Column(String, nullable=True)
 
     session = relationship("TestSession", back_populates="blood_tests")
