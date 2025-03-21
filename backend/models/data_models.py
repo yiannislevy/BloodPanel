@@ -13,8 +13,8 @@ class PersonalMetadata(BaseModel):
 
 class BloodTest(BaseModel):
     test_name: str
-    value: float
-    unit: str
+    value: Optional[float]
+    unit: Optional[str]
     normal_range: Optional[str] = None
 
 class Errors(BaseModel):
@@ -22,6 +22,6 @@ class Errors(BaseModel):
     description: str
 
 class BloodTestResults(BaseModel):
-    personal_info: List[PersonalMetadata]
+    personal_info: PersonalMetadata
     test_results: List[BloodTest]
     errors: Optional[List[Errors]] = None

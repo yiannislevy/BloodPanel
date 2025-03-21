@@ -9,7 +9,7 @@ import time
 from typing import Optional, List
 from openai import OpenAI
 from dotenv import load_dotenv
-from utils.text_processors import extract_text_from_pdf, process_pdf_with_openai
+from utils.text_processors import extract_text_from_pdf, process_pdf_with_openai, standardize_date
 from database import engine
 from models import orm_models
 from sqlalchemy.orm import Session
@@ -63,7 +63,7 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
         return JSONResponse(content={"error": "Only PDF files are allowed"}, status_code=400)
 
     file_name = file.filename.replace(".pdf", "")
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
     file_path = f"{UPLOAD_DIR}/{file_name}_{timestamp}.pdf"
 
     with open(file_path, 'wb') as buffer:
@@ -85,7 +85,7 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
             f.write(structured_data.model_dump_json(indent=2))
 
     # ===== Explicit Database Logic Starts Here =====
-    metadata = structured_data.personal_info[0]
+    metadata = structured_data.personal_info
 
     user = db.query(orm_models.User).filter(orm_models.User.name == metadata.name).first()
     if not user:
@@ -93,16 +93,19 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
         db.add(user)
         db.commit()
         db.refresh(user)
+    
+    standardized_date_string = standardize_date(metadata.test_date) # standardize time to avoid errors
 
     session = orm_models.TestSession(
         user_id=user.user_id,
-        test_date=datetime.strptime(metadata.test_date, "%Y-%m-%d") if metadata.test_date else datetime.now(),
+        test_date = datetime.strptime(standardized_date_string, "%d-%m-%Y"),
         location=metadata.location,
         weight=metadata.weight
     )
     db.add(session)
     db.commit()
     db.refresh(session)
+
 
     for test in structured_data.test_results:
         blood_test = orm_models.BloodTest(
@@ -116,7 +119,6 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
 
     db.commit()
     # ===== Explicit Database Logic Ends Here =====
-
 
     return {
         "filename": file.filename, 

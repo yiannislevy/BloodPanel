@@ -2,6 +2,7 @@ import pdfplumber
 from typing import List, Optional
 from models.data_models import BloodTestResults
 from openai import OpenAI
+from datetime import datetime
 
 def extract_text_from_pdf(pdf_path):
     """
@@ -37,14 +38,16 @@ def process_pdf_with_openai(raw_text: str, api_key: str) -> Optional[BloodTestRe
         "1. Parse the provided text and extract personal metadata and blood test results.\n"
         "2. Structure the output according to the provided Pydantic model (BloodTestResults).\n"
         "3. Translate any non-English text or inconsistent formatting into standardized English.\n"
-        "4. If data is missing or unclear, include it in the 'errors' field with a description.\n" # TODO: instruct to fill blanks with usable placeholders
+        "4. If data is missing or unclear, include it in the test_results array normally but with a null value for 'value', else if it can't be structured include it in the errors with a clear concise description.\n" # TODO: instruct to fill blanks with usable placeholders
         "5. If no test date is provided, use today's date.\n"
+        "6. Format the test_date as DD-MM-YYYY.\n"
+        "7. Data must not be duplicate, lost, skipped, inferred or changed, so you must include everything as expected, even partially full data."
     )
 
     # 3) Call the beta `parse` method with the model + messages
     try:
         completion = client.beta.chat.completions.parse(
-            model="gpt-4o-2024-08-06",  # Example model name from the docs; adapt as needed
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": raw_text},
@@ -61,3 +64,17 @@ def process_pdf_with_openai(raw_text: str, api_key: str) -> Optional[BloodTestRe
     except Exception as e:
         print(f"Error processing with OpenAI: {e}")
         return None
+    
+def standardize_date(date_str: str) -> str:
+    """Standardizes a date string to DD-MM-YYYY format."""
+    try:
+        # Try parsing as YYYY-MM-DD
+        date_obj = datetime.strptime(date_str, "%Y/%m/%d")
+        return date_obj.strftime("%d-%m-%Y")
+    except ValueError:
+        try:
+            # Try parsing as DD-MM-YYYY
+            datetime.strptime(date_str, "%d-%m-%Y")
+            return date_str  # Already in correct format
+        except ValueError:
+            return datetime.now().strftime("%d-%m-%Y") # default to now.
