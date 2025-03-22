@@ -125,3 +125,20 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
         "path": file_path,
         "structured_data": structured_data.dict()
     }
+
+@app.get("/sessions")
+def get_sessions(db: Session = Depends(get_db)):
+    sessions = db.query(orm_models.TestSession).order_by(orm_models.TestSession.test_date.desc()).all()
+    return sessions
+
+@app.get("/sessions/{session_id}")
+def get_session_details(session_id: int, db: Session = Depends(get_db)):
+    session = db.query(orm_models.TestSession).filter_by(session_id=session_id).first()
+    tests = db.query(orm_models.BloodTest).filter_by(session_id=session_id).all()
+    return {
+        "session_id": session.session_id,
+        "test_date": session.test_date,
+        "location": session.location,
+        "weight": session.weight,
+        "blood_tests": tests
+    }
