@@ -3,14 +3,14 @@ import { useDropzone } from "react-dropzone";
 
 const Upload = ({ onFileUpload }) => {
     const [errorMessage, setErrorMessage] = useState("");
-    const [isUploading, setIsUploading] = useState(false);
+    const [uploading, setUploading] = useState(false);
     
     // define handleFileUpload with useCallback to avoid ESLint warnings
     const handleFileUpload = useCallback(async (file) => {
         const formData = new FormData();
         formData.append("file", file);
         
-        setIsUploading(true);
+        setUploading(true);
         
         try {
             // Send file to FastAPI
@@ -19,34 +19,20 @@ const Upload = ({ onFileUpload }) => {
                 body: formData,
             });
             
-            // Parse response data
-            const data = await response.json();
-            
             if (!response.ok) {
-                // Server returned an error
-                setErrorMessage(data.error || "Upload failed. Please try again.");
-                console.error("Upload failed:", data);
-            } else {
-                // success
-                console.log("Upload successful:", data);
-                alert(`Upload successful! File: ${file.name}`);
-                // Call parent callback if provided
-                if (onFileUpload) {
-                    // Pass both the original file and the server response
-                    onFileUpload({
-                        ...data,
-                        name: file.name,
-                        originalFile: file
-                    });
-                }
+                throw new Error('Upload failed');
             }
+            
+            await response.json();
+            onFileUpload(); // Call the callback after successful upload
         } catch (error) {
             setErrorMessage("Error connecting to server. Please try again.");
             console.error("Error uploading file:", error);
+            alert('Failed to upload file');
         } finally {
-            setIsUploading(false);
+            setUploading(false);
         }
-    }, [onFileUpload, setErrorMessage, setIsUploading]);
+    }, [onFileUpload]);
     
     const onDrop = useCallback(async (acceptedFiles, fileRejections) => {
         // Clear previous error messages
@@ -91,7 +77,7 @@ const Upload = ({ onFileUpload }) => {
                 }}
             >
                 <input {...getInputProps()} />
-                {isUploading ? (
+                {uploading ? (
                     <p>Uploading...</p>
                 ) : (
                     <p>{isDragActive ? "Drop the PDF here" : "Drag & Drop a PDF here, or click to browse"}</p>
