@@ -1,15 +1,46 @@
 // SessionDetails.js
 import React, { useEffect, useState } from 'react';
-import { fetchSessionDetails } from '../api';
+import { fetchSessionDetails, updateBloodTest } from '../api';
 import MetricTrend from './MetricTrend';
 
 const SessionDetails = ({ sessionId }) => {
   const [details, setDetails] = useState(null);
   const [selectedTest, setSelectedTest] = useState(null);
+  const [editingTest, setEditingTest] = useState(null);
+  const [editValue, setEditValue] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     fetchSessionDetails(sessionId).then(data => setDetails(data));
   }, [sessionId]);
+
+  const handleEdit = (test) => {
+    setEditingTest(test);
+    setEditValue(test.value);
+  };
+
+  const handleSave = async (test) => {
+    setIsUpdating(true);
+    try {
+      const updatedData = {
+        value: editValue,
+        unit: test.unit,
+        test_name: test.test_name
+      };
+
+      await updateBloodTest(sessionId, test.test_id, updatedData);
+      
+      // Refresh the details
+      const newDetails = await fetchSessionDetails(sessionId);
+      setDetails(newDetails);
+      setEditingTest(null);
+    } catch (error) {
+      console.error('Error updating test:', error);
+      alert('Failed to update test value');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   if (!details) return <p>Loading...</p>;
 
@@ -28,13 +59,65 @@ const SessionDetails = ({ sessionId }) => {
         {details.blood_tests.map(test => (
           <li 
             key={test.test_id}
-            onClick={() => setSelectedTest(test.test_name)}
-            style={testItemStyle}
-            onMouseEnter={e => e.target.style.backgroundColor = '#f0f0f0'}
-            onMouseLeave={e => e.target.style.backgroundColor = 'transparent'}
+            style={{
+              padding: '10px',
+              margin: '5px 0',
+              borderRadius: '5px',
+              backgroundColor: '#f8f9fa',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}
           >
-            🔬 <strong>{test.test_name}</strong>: {test.value} {test.unit} 
-            {test.normal_range && ` (Normal: ${test.normal_range})`}
+            <div onClick={() => setSelectedTest(test.test_name)} style={{ cursor: 'pointer', flex: 1 }}>
+              🔬 <strong>{test.test_name}</strong>: {' '}
+              {editingTest?.test_id === test.test_id ? (
+                <input
+                  type="text"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  style={{ width: '80px' }}
+                />
+              ) : (
+                <span>{test.value}</span>
+              )}{' '}
+              {test.unit} 
+              {test.normal_range && ` (Normal: ${test.normal_range})`}
+            </div>
+            <div>
+              {editingTest?.test_id === test.test_id ? (
+                <button
+                  onClick={() => handleSave(test)}
+                  disabled={isUpdating}
+                  style={{
+                    marginLeft: '10px',
+                    padding: '4px 8px',
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Save
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleEdit(test)}
+                  style={{
+                    marginLeft: '10px',
+                    padding: '4px 8px',
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Edit
+                </button>
+              )}
+            </div>
           </li>
         ))}
       </ul>

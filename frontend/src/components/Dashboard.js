@@ -6,9 +6,16 @@ import SessionDetails from './SessionDetails';
 
 const Dashboard = () => {
   const [selectedSessionId, setSelectedSessionId] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleUpload = () => {
-    setSelectedSessionId(null); // refresh list after upload
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  const handleSessionDeleted = (deletedSessionId) => {
+    if (selectedSessionId === deletedSessionId) {
+      setSelectedSessionId(null);
+    }
   };
 
   return (
@@ -16,7 +23,11 @@ const Dashboard = () => {
       <h1 style={{ textAlign: 'center' }}>Blood Test Dashboard</h1>
       <Upload onFileUpload={handleUpload} />
       <div style={{ display: 'flex', gap: '20px', marginTop: '40px' }}>
-        <SessionList onSelectSession={setSelectedSessionId} />
+        <SessionList 
+          onSelectSession={setSelectedSessionId} 
+          onSessionDeleted={handleSessionDeleted}
+          refreshTrigger={refreshTrigger}
+        />
         {selectedSessionId && <SessionDetails sessionId={selectedSessionId} />}
       </div>
     </div>
