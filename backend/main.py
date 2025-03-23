@@ -76,7 +76,7 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
         shutil.copyfileobj(file.file, buffer)
 
     # now we trigger ocr processing:
-    raw_text = extract_text_from_pdf(file_path)
+    raw_text = extract_text_from_pdf(file_path, api_key)
     if not raw_text:
         return JSONResponse(content={"error": "Failed to extract text from PDF"}, status_code=500)
     else:

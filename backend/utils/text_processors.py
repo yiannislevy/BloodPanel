@@ -3,26 +3,98 @@ from typing import List, Optional
 from models.data_models import BloodTestResults
 from openai import OpenAI
 from datetime import datetime
+import base64
+from pdf2image import convert_from_path
+import base64
+from io import BytesIO
 
-def extract_text_from_pdf(pdf_path):
+def encode_image(pil_image):
+    buffered = BytesIO()
+    pil_image.save(buffered, format="JPEG")
+    return base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+def extract_text_from_pdf(pdf_path, api_key: str):
     """
-    Extracts text from a text-based PDF using pdfplumber.
+    Attempts to extract text from a PDF using pdfplumber first.
+    If that fails (likely due to scanned/image PDF), falls back to OpenAI Vision.
     Returns the extracted text as a string.
-    Note: This function only works with text-based PDFs, not scanned/image-based PDFs.
     """
-    text = ""
+    # First try with pdfplumber
     try:
         with pdfplumber.open(pdf_path) as pdf:
-            print("Extracting text from PDF...")
+            print("Attempting text extraction with pdfplumber...")
+            text = ""
             for page in pdf.pages:
                 page_text = page.extract_text()
-                if page_text:  # Only add non-None text
+                if page_text:
                     text += page_text + "\n"
             
-            return text.strip()
+            if text.strip():  # If we got meaningful text
+                return text.strip()
+            else:
+                raise Exception("No text extracted - might be scanned/image PDF")
+                
     except Exception as e:
-        print(f"Error processing PDF: {e}")
-        return ""
+        print(f"pdfplumber extraction failed: {e}")
+        print("Falling back to OpenAI Vision API...")
+        return extract_text_with_vision(pdf_path, api_key)
+
+def extract_text_with_vision(pdf_path: str, api_key: str) -> str:
+    """
+    Uses OpenAI's Vision model to extract text from every page of a scanned/image-based PDF.
+    """
+    client = OpenAI(api_key=api_key)
+    images = convert_from_path(pdf_path, dpi=300)
+    
+    system_prompt = """
+    You are a precise OCR system. Your task is to:
+    1. Extract ALL text visible in the document exactly as it appears
+    2. Preserve the exact formatting, numbers, and units as they appear
+    3. Include ALL text, including headers, footers, and margins
+    4. Do NOT interpret, analyze, or modify the text in any way
+    5. Do NOT skip any information, no matter how minor it seems
+    6. Maintain line breaks and spacing as close to the original as possible
+    7. If you see tables, preserve their structure as best as possible using spacing
+    8. Include any visible markers, symbols, or special characters
+
+    Output the raw text exactly as you see it, with no additional commentary or formatting.
+    """
+
+    all_extracted_text = []
+    
+    for idx, image in enumerate(images):
+        image_b64 = encode_image(image)
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": system_prompt
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            { "type": "text", "text": "Extract text from this image precisely." },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{image_b64}",
+                                    "detail": "high"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                max_tokens=4096
+            )
+            extracted_text = response.choices[0].message.content.strip()
+            all_extracted_text.append(f"Page {idx+1}:\n{extracted_text}")
+        except Exception as e:
+            print(f"Error processing page {idx+1}: {e}")
+            all_extracted_text.append(f"Page {idx+1}: [Error extracting text]")
+    
+    return "\n\n".join(all_extracted_text)
 
 def process_pdf_with_openai(raw_text: str, api_key: str) -> Optional[BloodTestResults]:
     """
@@ -64,12 +136,13 @@ def process_pdf_with_openai(raw_text: str, api_key: str) -> Optional[BloodTestRe
         - Absolutely avoid partial conversions or guesses.
 
         5. **Test Date Handling**:
-        - If no date is present, default to *today’s date* in format DD-MM-YYYY.
+        - If no date is present, default to *today's date* in format DD-MM-YYYY.
 
         6. **Completeness**:
         - Do not infer or hallucinate missing data. If the data is not present, keep `value = null`.
         - If any data is impossible to parse, place it in the `errors` array with a concise description.
-        - Absolutely *no* duplication, omission, or invented data.
+        - Absolutely *no* omission, or invented data.
+        - Beware of similarly named tests (eg. HbA1c and HbA1); you must include them all, since they most likely have different values too.
 
         7. **Final Output**:
         - Return a single JSON (following `BloodTestResults`) that includes `personal_info`, `test_results`, and any `errors`.
