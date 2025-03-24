@@ -1,6 +1,6 @@
 # Blood Test OCR & AI Parser 🩸📄
 
-**A full-stack application using OCR and an LLM API to automate the extraction and structured management of blood test data from PDF reports.**
+**A full-stack application using OCR and an LLM API to automate the extraction and structured management of blood test data from PDF files.**
 
 ---
 
@@ -10,7 +10,7 @@ This project automates the extraction, parsing, and structured storage of blood 
 **Current features include:**
 
 - **PDF Uploading:** Drag-and-drop functionality to upload blood test PDFs.
-- **Automated OCR & Parsing:** Extracts text with `pdfplumber` and processes data with OpenAI's GPT-4o.
+- **Automated OCR & Parsing:** Extracts text and formats data with OpenAI's GPT-4o.
 - **Data Validation:** Uses Pydantic to ensure accurate, structured data.
 - **Database Storage:** Stores structured data using PostgreSQL and SQLAlchemy ORM.
 
@@ -20,19 +20,20 @@ This project automates the extraction, parsing, and structured storage of blood 
 
 ### Frontend
 - **React** (functional components, hooks)
-- **Tailwind CSS** (planned for styling)
 - **react-dropzone**
 
 ### Backend
-- **FastAPI** (REST API)
 - **Python**
-- **OpenAI GPT-4o API**
-- **pdfplumber** (OCR)
+- **FastAPI** (REST API)
 - **Pydantic** (Data validation)
+- **OpenAI GPT-4o API** (Data formatting & (Optional) OCR)
+- **pdfplumber**
+- **pdf2image**
 
 ### Database
 - **PostgreSQL**
 - **SQLAlchemy** ORM
+- **Alembic**
 
 ### Development Tools
 - **DBeaver** (DB Management)
@@ -59,17 +60,16 @@ npm start
 ---
 
 ## 🚧 Current Limitations
-- PDF is text based only, not scanned
-- Basic functionality without frontend data management UI
 - Minimal error handling
-- No authentication yet
+- No authentication(yet)
 
 ---
 
 ## 🗺️ Future Plans
 
 ### Actionable Soon 🚩
-- [ ] **Frontend Dashboard:** View and manage past blood test sessions
+- [x] ~~**Frontend Dashboard:** View and manage past blood test sessions~~
+- [ ] **Frontend Enhancement:** Add meaningful frontend (landing page, profile, dashboard)
 - [ ] **Enhanced Error Handling:** Robust handling of OCR (scanned), LLM, and DB failures
 - [ ] **JWT-based Authentication:** Secure user data and sessions
 - [ ] **Dockerization:** Containerize frontend and backend
@@ -80,40 +80,5 @@ npm start
 - [ ] **Fine-tuned AI Models:** Improve extraction accuracy with domain-specific fine-tuning
 - [ ] **Advanced Analytics Dashboard:** Visualization & analysis of health metrics
 - [ ] **Mobile Compatibility:** Responsive UI or dedicated mobile app
-
----
-
-## 📚 Documentation & Structure
-
-### Project Structure
-```
-backend/
-├── models/
-│   ├── data_models.py (Pydantic models)
-│   └── orm_models.py (SQLAlchemy ORM)
-├── utils/
-│   └── text_processors.py
-├── database.py
-└── main.py
-
-frontend/
-├── src/
-│   ├── App.js
-│   └── index.js
-|   └── Upload.js
-```
-
----
-
-## 🔗 Quick Links
-- [FastAPI](https://fastapi.tiangolo.com/)
-- [React](https://reactjs.org/)
-- [SQLAlchemy](https://www.sqlalchemy.org/)
-- [OpenAI API](https://platform.openai.com/docs/guides/structured-outputs?api-mode=responses)
-- [pdfplumber](https://github.com/jsvine/pdfplumber)
-
----
-
-**Author:** [Yiannis Levy](https://github.com/yiannislevy)
 
 ---
