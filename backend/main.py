@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from utils.text_processors import extract_text_from_pdf, process_pdf_with_openai, standardize_date
 from database import engine
 from models import orm_models
+from models.data_models import BloodTestUpdate
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from pydantic import BaseModel
@@ -56,12 +57,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-# Add this model for blood test updates
-class BloodTestUpdate(BaseModel):
-    value: str
-    unit: str
-    test_name: str
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db)):

@@ -10,7 +10,6 @@ class PersonalMetadata(BaseModel):
     location: Optional[str] = None
     test_date: Optional[str] = None
 
-
 class BloodTest(BaseModel):
     test_name: str
     value: Optional[float]
@@ -25,3 +24,9 @@ class BloodTestResults(BaseModel):
     personal_info: PersonalMetadata
     test_results: List[BloodTest]
     errors: Optional[List[Errors]] = None
+
+# Add this model for blood test updates
+class BloodTestUpdate(BaseModel):
+    value: str
+    unit: str
+    test_name: str
