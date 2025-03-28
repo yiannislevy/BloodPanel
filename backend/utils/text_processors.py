@@ -123,11 +123,12 @@ def process_pdf_with_openai(raw_text: str, api_key: str) -> Optional[BloodTestRe
         - Triglycerides → `Triglycerides`
         - Glucose → `Glucose`
         - Hemoglobin A1c → `HbA1c`
+        - Hemoglobin A1 Total -> `HbA1` (different from HbA1c and should be included intact)
         - Vitamin D (e.g., 25-OH D3, D2) → `Vitamin D`
         - T4 Thyroxine (T4, Thyroxine) → `T4`
         - TSH → `TSH`
         - ...and so on.
-        (These are examples, not an exhaustive list. For other tests, pick the most concise English name; if unsure, keep your best guess and note it in `errors`.)
+        (These are examples, not an exhaustive list. For other tests, pick the most concise English name; if unsure, keep your best guess and note it in `errors`. Beware of tests that have very similar name but are different, you must include them all accurately.)
 
         4. **Unit Standardization & Conversion (Greek Labs Preference)**:
         - For Greek lab reports, assume mg/dL for glucose, cholesterol, creatinine, etc., when measurements appear in different units. If you cannot reliably convert, place the item in `errors` with a note.
