@@ -5,6 +5,7 @@ argon2-cffi
 argon2-cffi-bindings
 arrow
 asttokens
+alembic
 async-lru
 attrs
 babel
@@ -48,10 +49,6 @@ idna
 importlib_metadata
 importlib_resources
 iniconfig
-ipykernel
-ipython
-ipython_pygments_lexers
-ipywidgets
 isoduration
 jedi
 Jinja2
@@ -60,18 +57,6 @@ json5
 jsonpointer
 jsonschema
 jsonschema-specifications
-jupyter
-jupyter-console
-jupyter-events
-jupyter-lsp
-jupyter_client
-jupyter_core
-jupyter_server
-jupyter_server_terminals
-jupyterlab
-jupyterlab_pygments
-jupyterlab_server
-jupyterlab_widgets
 kiwisolver
 markdown-it-py
 MarkupSafe
@@ -83,13 +68,9 @@ mistune
 munkres
 mypy_extensions
 narwhals
-nbclient
-nbconvert
-nbformat
 nest_asyncio
-notebook
-notebook_shim
 numpy
+openai
 overrides
 packaging
 pandas
@@ -97,6 +78,8 @@ pandocfilters
 parso
 pathspec
 patsy
+pdf2image
+pdfplumber
 pexpect
 pickleshare
 pillow
@@ -105,7 +88,7 @@ platformdirs
 plotly
 pluggy
 prometheus_client
-prompt_toolkitz 
+prompt_toolkit
 psutil
 psycopg2-binary
 ptyprocess
@@ -116,8 +99,6 @@ pydantic
 pydantic_core
 pyflakes
 Pygments
-pyobjc-core
-pyobjc-framework-Cocoa
 pyparsing
 PySocks
 pytest
@@ -170,7 +151,6 @@ webcolors
 webencodings
 websocket-client
 websockets
-widgetsnbextension
 xyzservices
 zipp
 zstandard
