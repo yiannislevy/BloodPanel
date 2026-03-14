@@ -16,7 +16,7 @@ class TestSession(Base):
     
     session_id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
-    test_date = Column(DateTime, nullable=False)
+    test_date = Column(DateTime, nullable=False) #fix this to true and add option for manual date setting from frontend
     location = Column(String, nullable=True)
     weight = Column(Float, nullable=True)
 
