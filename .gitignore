@@ -41,6 +41,8 @@ uploads
 
 .env
 
+diagram.png
+
 backend/utils/archive
 
 backend/test_data
