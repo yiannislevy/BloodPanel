@@ -43,10 +43,23 @@ This project automates the extraction, parsing, and structured storage of blood 
 
 ## 🛠️ Setup & Run
 
-### Backend
+### Prerequisites
+- Python 3.11
+- Node.js
+- PostgreSQL running locally, with a database created (tables are auto-created on first run)
+- An OpenAI API key
+
+### Environment Variables
 ```bash
+cp .env.example .env
+# then fill in your OpenAI key and database credentials
+```
+
+### Backend
+From the project root:
+```bash
+pip install -r requirements.txt
 cd backend
-pip3 install -r requirements.txt
 uvicorn main:app --reload
 ```
 
