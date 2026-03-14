@@ -15,6 +15,8 @@ if not api_key:
     raise RuntimeError("OpenAI api key environment variable not set!")
 UPLOAD_DIR = "../uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs("responses/raw", exist_ok=True)
+os.makedirs("responses/openai", exist_ok=True)
 
 router = APIRouter(prefix="/upload", tags=["upload"])
 
